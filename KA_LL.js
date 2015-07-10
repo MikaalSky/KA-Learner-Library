@@ -18,10 +18,12 @@ var KA_LL = {
 		// allowing programs extra functionality without modification.
 		cachedData: {},
 		refreshData: function(callback) {
-			$.getJSON("https://www.khanacademy.org/api/internal/discussions/scratchpad/6504298256138240/comments?casing=camel&sort=2&limit=200000000000000000000000&page=0&lang=en&callback=?",function(data){
-				cachedData = data;
-				callback(); //We don't pass the data because they should be using get()
-			})
+			KA_LL.storage.rC = callback;
+			$.getJSON("https://www.khanacademy.org/api/internal/discussions/scratchpad/6504298256138240/comments?casing=camel&sort=2&limit=200000000000000000000000&page=0&lang=en&callback=KA_LL.storage.refreshCallback")
+		},
+		rC: undefined,
+		refreshCallback: function(data){
+			KA_LL.storage.rC()
 		},
 		/*
 		 * key, value
@@ -29,6 +31,9 @@ var KA_LL = {
 		 * value = json index
 		 * callback = function(data)
 		 */
+		dataCallback: function(data){
+
+		},
 		get: function(key, value, callback) {
 			if (KA_LL.onKA) {
 				//return sessionStorage.getItem(key, value);
