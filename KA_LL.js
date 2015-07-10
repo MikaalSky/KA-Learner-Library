@@ -1,3 +1,6 @@
+if(!jQuery){
+	alert("KA_LL requires jQuery to contact the database. Please add jQuery as a script.")
+}
 var KA_LL = {
 	rot13: function(inputString) {
 	// ROT-13 by Ben Alpert
@@ -13,9 +16,33 @@ var KA_LL = {
 		// otherwise.
 		// May be updated with techniques that mimic localStorage on KA
 		// allowing programs extra functionality without modification.
-		get: function(key, value) {
+		cachedData: {},
+		refreshData: function(callback) {
+			$.getJSON("https://www.khanacademy.org/api/internal/discussions/scratchpad/6504298256138240/comments?casing=camel&sort=2&limit=200000000000000000000000&page=0&lang=en&callback=?",function(data){
+				cachedData = data;
+				callback(); //We don't pass the data because they should be using get()
+			})
+		},
+		/*
+		 * key, value
+		 * key = username (may change)
+		 * value = json index
+		 * callback = function(data)
+		 */
+		get: function(key, value, callback) {
 			if (KA_LL.onKA) {
-				return sessionStorage.getItem(key, value);
+				//return sessionStorage.getItem(key, value);
+				var comments = KA_LL.storage.cachedData.feedback;
+				for(var i = 0; i < comments.length; i++){
+					$.getJSON("https://www.khanacademy.org/api/internal/user/profile?kaid=" + comments[i].authorKaid + "&lang=en&callback=?", function(data){
+						if(data.username.toLowerCase() == key.toLowerCase()){
+							this.parseingData = data.content.replace("|-|KA_LLJSON|-|\n","");
+							callback(JSON.parse(this.parseingData));
+						}else{
+							callback(false);
+						}
+					})
+				}
 			} else {
 				return localStorage.getItem(key, value);
 			}},
@@ -66,3 +93,8 @@ var KA_LL = {
 		}
 	}
 };
+function contactMT(dataToSend, callback){
+	chrome.runtime.sendMessage("melabjdobbjfobmgaagkmgbnhplncdie",{"banana":7},function(data){
+  		callback(data)
+	});
+}
